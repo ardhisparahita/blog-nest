@@ -5,7 +5,7 @@ import { CreateUpdateCommentDto } from './dto/createUpdate-comment.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import type { UserPayload } from 'src/auth/interface/authenticated-request.interface';
 
-@Controller('comment')
+@Controller('comments')
 @UseGuards(AuthGuard)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
