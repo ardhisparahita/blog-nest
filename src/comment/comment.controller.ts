@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { CommentService } from './comment.service';
-import { UserId } from 'src/common/decorators/user.decorator';
+import { UserId } from 'src/auth/decorators/user.decorator';
 import { CreateUpdateCommentDto } from './dto/createUpdate-comment.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 

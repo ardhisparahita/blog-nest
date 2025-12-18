@@ -5,12 +5,13 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Role } from '../enum/role.enum';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { Article } from 'src/article/entities/article.entity';
 
-@Entity()
+@Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -35,11 +36,11 @@ export class User {
   profile: Profile;
 
   @OneToMany(() => Article, (article) => article.id)
-  article: Article[];
+  articles: Article[];
 
   @CreateDateColumn()
   readonly createdAt: Date;
 
-  @CreateDateColumn()
+  @UpdateDateColumn()
   readonly updatedAt: Date;
 }

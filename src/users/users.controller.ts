@@ -11,7 +11,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { UsersService } from './users.service';
 import { RolesGuard } from 'src/auth/guard/role.guard';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { Roles } from 'src/auth/decorator/roles.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enum/role.enum';
 import { FindOneParams } from './dto/find-one.params';
 import { UpdateRoleDto } from './dto/update-role.dto';

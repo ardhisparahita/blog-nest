@@ -2,7 +2,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -14,7 +13,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { ArticleTag } from 'src/articleTag/entities/articleTag.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 
-@Entity('articles')
+@Entity()
 export class Article {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -39,20 +38,14 @@ export class Article {
   })
   status: ArticleStatus;
 
-  @ManyToOne(() => Category, { nullable: false })
-  @JoinColumn({ name: 'categoryId' })
+  @ManyToOne(() => Category, (category) => category.id)
   category: Category;
-  @Column({
-    type: 'uuid',
-  })
+  @Column({ type: 'uuid' })
   categoryId: string;
 
-  @ManyToOne(() => User, { nullable: false })
-  @JoinColumn({ name: 'userId' })
+  @ManyToOne(() => User, (user) => user.id)
   user: User;
-  @Column({
-    type: 'uuid',
-  })
+  @Column({ type: 'uuid' })
   userId: string;
 
   @OneToMany(() => ArticleTag, (articleTag) => articleTag.article)
@@ -60,6 +53,7 @@ export class Article {
 
   @OneToMany(() => Comment, (comment) => comment.article)
   comments: Comment[];
+
   @CreateDateColumn()
   readonly createdAt: Date;
 

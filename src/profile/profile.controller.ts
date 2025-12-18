@@ -9,7 +9,7 @@ import {
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { ProfileService } from './profile.service';
 import { CreateOrUpdateProfileDto } from './dto/createOrUpdate-profile.dto';
-import { UserId } from 'src/common/decorators/user.decorator';
+import { UserId } from 'src/auth/decorators/user.decorator';
 import { User } from 'src/auth/entities/user.entity';
 
 @Controller('profile')

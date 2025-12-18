@@ -22,12 +22,12 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleQueryDto } from './dto/article-query.dto';
 import { FindOneParamsDto } from './dto/find-one.params';
 import { Article } from './entities/article.entity';
-import { User } from 'src/common/decorators/user.decorator';
+import { User } from 'src/auth/decorators/user.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/role.guard';
-import { Roles } from 'src/auth/decorator/roles.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enum/role.enum';
-import type { UserPayload } from 'src/common/interface/authenticated-request.interface';
+import type { UserPayload } from 'src/auth/interface/authenticated-request.interface';
 
 @Controller('articles')
 export class ArticleController {

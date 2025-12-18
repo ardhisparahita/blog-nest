@@ -14,9 +14,9 @@ import { LoginDto } from './dto/login.dto';
 import { User } from './entities/user.entity';
 import { AuthGuard } from './guard/auth.guard';
 import { RolesGuard } from './guard/role.guard';
-import { Roles } from './decorator/roles.decorator';
+import { Roles } from './decorators/roles.decorator';
 import { Role } from './enum/role.enum';
-import { UserId } from 'src/common/decorators/user.decorator';
+import { UserId } from 'src/auth/decorators/user.decorator';
 
 @Controller('auth')
 export class AuthController {
