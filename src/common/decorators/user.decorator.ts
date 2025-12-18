@@ -1,14 +1,22 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import {
+  createParamDecorator,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthenticatedRequest } from '../interface/authenticated-request.interface';
 
-export const UserId = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): string => {
+export const User = createParamDecorator(
+  (
+    key: keyof AuthenticatedRequest['user'] | undefined,
+    ctx: ExecutionContext,
+  ) => {
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
     const user = request.user;
 
-    if (!user?.id) {
-      throw new Error('User ID not found');
+    if (!user) {
+      throw new UnauthorizedException('User not authenticated');
     }
-    return user.id;
+
+    return key ? user[key] : user;
   },
 );
