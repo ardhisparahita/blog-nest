@@ -13,7 +13,7 @@ import { User } from 'src/auth/entities/user.entity';
 import { ArticleTag } from 'src/articleTag/entities/articleTag.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 
-@Entity()
+@Entity('articles')
 export class Article {
   @PrimaryGeneratedColumn('uuid')
   id: string;
