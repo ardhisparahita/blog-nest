@@ -22,11 +22,12 @@ import { UpdateArticleDto } from './dto/update-article.dto';
 import { ArticleQueryDto } from './dto/article-query.dto';
 import { FindOneParamsDto } from './dto/find-one.params';
 import { Article } from './entities/article.entity';
-import { UserId } from 'src/common/decorators/user.decorator';
+import { User } from 'src/common/decorators/user.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/role.guard';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { Role } from 'src/auth/enum/role.enum';
+import type { UserPayload } from 'src/common/interface/authenticated-request.interface';
 
 @Controller('articles')
 export class ArticleController {
@@ -47,8 +48,8 @@ export class ArticleController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('me')
-  findMyArticles(@UserId() userId: string, @Query() query: ArticleQueryDto) {
-    return this.articleService.findByUser(userId, query);
+  findMyArticles(@User() user: UserPayload, @Query() query: ArticleQueryDto) {
+    return this.articleService.findByUser(user.id, query);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -56,11 +57,11 @@ export class ArticleController {
   @Post()
   @UseInterceptors(FileInterceptor('image'))
   create(
-    @UserId() userId: string,
+    @User() user: UserPayload,
     @Body() dto: CreateArticleDto,
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<Article> {
-    return this.articleService.create(userId, dto, file);
+    return this.articleService.create(user.id, dto, file);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -68,13 +69,13 @@ export class ArticleController {
   @Patch(':id')
   @UseInterceptors(FileInterceptor('image'))
   async update(
-    @UserId() userId: string,
+    @User() user: UserPayload,
     @Param() params: FindOneParamsDto,
     @Body() dto: UpdateArticleDto,
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<Article> {
     const article = await this.getArticleOrThrow(params.id);
-    return this.articleService.update(userId, article, dto, file);
+    return this.articleService.update(user.id, article, dto, file);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -82,11 +83,11 @@ export class ArticleController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
-    @UserId() userId: string,
+    @User() user: UserPayload,
     @Param() params: FindOneParamsDto,
   ): Promise<void> {
     const article = await this.getArticleOrThrow(params.id);
-    await this.articleService.remove(userId, article);
+    await this.articleService.remove(user.id, article);
   }
 
   // PRIVATE
