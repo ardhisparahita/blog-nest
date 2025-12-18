@@ -1,51 +1,29 @@
-import {
-  Body,
-  Controller,
-  Get,
-  NotFoundException,
-  Param,
-  Patch,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { User } from 'src/auth/entities/user.entity';
 import { UsersService } from './users.service';
 import { RolesGuard } from 'src/auth/guard/role.guard';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
-import { Roles } from 'src/auth/decorator/roles.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enum/role.enum';
-import { FindOneParams } from './dto/find-one.params';
+import { FindOneParamsDto } from 'src/common/dto/find-one-params.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Controller('users')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(Role.ADMIN)
 export class UsersController {
-  constructor(private userService: UsersService) {}
+  constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
   async findAll(): Promise<User[]> {
-    return await this.userService.findAll();
+    return this.usersService.findAll();
   }
 
   @Patch('/:id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  async update(
-    @Param() params: FindOneParams,
-    @Body() UpdateRoleDto: UpdateRoleDto,
+  async updateRole(
+    @Param() params: FindOneParamsDto,
+    @Body() updateRoleDto: UpdateRoleDto,
   ): Promise<{ message: string }> {
-    const user = await this.findOneOrFail(params.id);
-    await this.userService.update(user, UpdateRoleDto);
-    return {
-      message: 'role update success',
-    };
-  }
-
-  private async findOneOrFail(id: string): Promise<User> {
-    const user = await this.userService.findOne(id);
-    if (!user) {
-      throw new NotFoundException();
-    }
-    return user;
+    return this.usersService.updateRole(params.id, updateRoleDto);
   }
 }

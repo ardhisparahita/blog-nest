@@ -1,18 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/auth/entities/user.entity';
 import { Repository } from 'typeorm';
 import { UpdateRoleDto } from './dto/update-role.dto';
-
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async findAll(): Promise<User[]> {
-    const user = await this.userRepository.find({
+    return this.userRepository.find({
       relations: ['profile'],
       select: {
         id: true,
@@ -25,22 +24,25 @@ export class UsersService {
         },
       },
     });
-    return user;
   }
 
   async findOne(id: string): Promise<User | null> {
-    return await this.userRepository.findOneBy({ id });
+    return this.userRepository.findOneBy({ id });
   }
 
-  async update(
-    user: User,
+  async getUserOrThrow(id: string): Promise<User> {
+    const user = await this.findOne(id);
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  async updateRole(
+    id: string,
     updateRoleDto: UpdateRoleDto,
   ): Promise<{ message: string }> {
+    const user = await this.getUserOrThrow(id);
     Object.assign(user, updateRoleDto);
     await this.userRepository.save(user);
-
-    return {
-      message: 'update success',
-    };
+    return { message: 'Role updated successfully' };
   }
 }
