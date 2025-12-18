@@ -1,31 +1,35 @@
-import { Injectable } from '@nestjs/common';
-import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
-import * as streamifier from 'streamifier';
-import { config } from 'dotenv';
-config();
-
-// Configuration
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  v2 as cloudinary,
+  UploadApiResponse,
+  UploadApiErrorResponse,
+} from 'cloudinary';
+import { Readable } from 'stream';
 
 @Injectable()
 export class CloudinaryService {
   async uploadImage(file: Express.Multer.File): Promise<string> {
-    return new Promise<string>((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'articles',
-          allowed_formats: ['jpg', 'png'],
+          allowed_formats: ['jpg', 'png', 'jpeg'],
         },
-        (err, result: UploadApiResponse) => {
-          if (err) return reject(err);
-          resolve(result.secure_url);
+        (
+          err: UploadApiErrorResponse | undefined,
+          result: UploadApiResponse | undefined,
+        ) => {
+          if (err) return reject(new InternalServerErrorException(err.message));
+          if (result) return resolve(result.secure_url);
+          reject(
+            new InternalServerErrorException('Upload failed: Unknown error'),
+          );
         },
       );
-      const stream = streamifier.createReadStream(file.buffer);
+
+      const stream = new Readable();
+      stream.push(file.buffer);
+      stream.push(null);
       stream.pipe(uploadStream);
     });
   }
