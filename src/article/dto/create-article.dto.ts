@@ -1,11 +1,10 @@
 import {
-  IsEnum,
+  IsArray,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
-import { ArticleStatus } from '../interface/article.interface';
 
 export class CreateArticleDto {
   @IsNotEmpty()
@@ -17,13 +16,11 @@ export class CreateArticleDto {
   content: string;
 
   @IsNotEmpty()
-  @IsEnum(ArticleStatus)
-  status: ArticleStatus;
-
-  @IsNotEmpty()
   @IsUUID()
   categoryId: string;
 
   @IsOptional()
-  tags: string[];
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 }

@@ -31,7 +31,7 @@ export class ArticleQueryDto {
 
   @IsOptional()
   @IsIn(['title', 'createdAt'])
-  sortBy?: string = 'createdAt';
+  sortBy: 'title' | 'createdAt' = 'createdAt';
 
   @IsOptional()
   @IsIn(['asc', 'desc'])

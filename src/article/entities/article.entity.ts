@@ -2,18 +2,19 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ArticleStatus } from '../interface/article.interface';
+import { ArticleStatus } from '../enums/article-status.enum';
 import { Category } from 'src/category/entities/category.entity';
 import { User } from 'src/auth/entities/user.entity';
 import { ArticleTag } from 'src/articleTag/entities/articleTag.entity';
 import { Comment } from 'src/comment/entities/comment.entity';
 
-@Entity()
+@Entity('articles')
 export class Article {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -29,7 +30,7 @@ export class Article {
   @Column({
     nullable: true,
   })
-  image: string;
+  image?: string;
 
   @Column({
     type: 'enum',
@@ -38,19 +39,19 @@ export class Article {
   })
   status: ArticleStatus;
 
-  @ManyToOne(() => Category, (category) => category.id)
+  @ManyToOne(() => Category, { nullable: false })
+  @JoinColumn({ name: 'categoryId' })
   category: Category;
   @Column({
-    type: 'varchar',
-    length: 36,
+    type: 'uuid',
   })
   categoryId: string;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'userId' })
   user: User;
   @Column({
-    type: 'varchar',
-    length: 36,
+    type: 'uuid',
   })
   userId: string;
 
@@ -60,8 +61,8 @@ export class Article {
   @OneToMany(() => Comment, (comment) => comment.article)
   comments: Comment[];
   @CreateDateColumn()
-  readonly createdAt: string;
+  readonly createdAt: Date;
 
   @UpdateDateColumn()
-  readonly updatedAt: string;
+  readonly updatedAt: Date;
 }

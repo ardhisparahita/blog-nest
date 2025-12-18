@@ -14,96 +14,87 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/create-article.dto';
-import { FindOneParams } from './dto/find-one.params';
 import { UpdateArticleDto } from './dto/update-article.dto';
+import { ArticleQueryDto } from './dto/article-query.dto';
+import { FindOneParamsDto } from './dto/find-one.params';
 import { Article } from './entities/article.entity';
+
 import { UserId } from 'src/common/decorators/user.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/role.guard';
 import { Roles } from 'src/auth/decorator/roles.decorator';
 import { Role } from 'src/auth/enum/role.enum';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ArticleQueryDto } from './dto/article-query.dto';
 
-@Controller('article')
+@Controller('articles')
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
+  // PUBLIC
   @Get()
-  async findAll(@Query() query: ArticleQueryDto) {
-    return await this.articleService.findAllArticle(query);
+  findAll(@Query() query: ArticleQueryDto) {
+    return this.articleService.findAll(query);
+  }
+
+  @Get(':id')
+  async findOne(@Param() params: FindOneParamsDto): Promise<Article> {
+    return this.getArticleOrThrow(params.id);
+  }
+
+  // ADMIN / AUTH
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @Get('me')
+  findMyArticles(@UserId() userId: string, @Query() query: ArticleQueryDto) {
+    return this.articleService.findByUser(userId, query);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Get('/user')
-  async findArticleUser(
-    @UserId() userId: string,
-    @Query() query: ArticleQueryDto,
-  ) {
-    const article = await this.articleService.articleByUsers(userId, query);
-    return article;
-  }
-
-  @Get('/:id')
-  async findOne(@Param() params: FindOneParams): Promise<Article> {
-    return await this.findOneOrFail(params.id);
-  }
-
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles(Role.ADMIN)
-  @UseInterceptors(FileInterceptor('image'))
   @Post()
-  async create(
+  @UseInterceptors(FileInterceptor('image'))
+  create(
     @UserId() userId: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Body()
-    createArticleDto: CreateArticleDto,
+    @Body() dto: CreateArticleDto,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<Article> {
-    return await this.articleService.createArticle(
-      userId,
-      createArticleDto,
-      file,
-    );
+    return this.articleService.create(userId, dto, file);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @Patch(':id')
   @UseInterceptors(FileInterceptor('image'))
-  @Patch('/:id')
   async update(
     @UserId() userId: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Param() params: FindOneParams,
-    @Body() updateArticleDto: UpdateArticleDto,
+    @Param() params: FindOneParamsDto,
+    @Body() dto: UpdateArticleDto,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<Article> {
-    const article = await this.findOneOrFail(params.id);
-    return await this.articleService.updateArticleByParams(
-      userId,
-      article,
-      updateArticleDto,
-      file,
-    );
+    const article = await this.getArticleOrThrow(params.id);
+    return this.articleService.update(userId, article, dto, file);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Delete('/:id')
+  @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(
+  async remove(
     @UserId() userId: string,
-    @Param() params: FindOneParams,
+    @Param() params: FindOneParamsDto,
   ): Promise<void> {
-    const article = await this.findOneOrFail(params.id);
-    return await this.articleService.deleteArticleByParams(userId, article);
+    const article = await this.getArticleOrThrow(params.id);
+    await this.articleService.remove(userId, article);
   }
 
-  private async findOneOrFail(id: string): Promise<Article> {
-    const article = await this.articleService.findOneByParams(id);
+  // PRIVATE
+  private async getArticleOrThrow(id: string): Promise<Article> {
+    const article = await this.articleService.findOne(id);
     if (!article) {
-      throw new NotFoundException();
+      throw new NotFoundException('Article not found');
     }
     return article;
   }

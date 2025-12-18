@@ -1,5 +1,4 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { IArticle } from './interface/article.interface';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,81 +13,76 @@ import { ArticleTag } from 'src/articleTag/entities/articleTag.entity';
 export class ArticleService {
   constructor(
     @InjectRepository(Article)
-    private articleRepository: Repository<Article>,
+    private readonly articleRepo: Repository<Article>,
+
     @InjectRepository(Tag)
-    private tagRepository: Repository<Tag>,
+    private readonly tagRepo: Repository<Tag>,
+
     @InjectRepository(ArticleTag)
-    private articleTagRepository: Repository<ArticleTag>,
-    private cloudinaryService: CloudinaryService,
+    private readonly articleTagRepo: Repository<ArticleTag>,
+
+    private readonly cloudinary: CloudinaryService,
   ) {}
 
-  async createArticle(
+  // =========================
+  // CREATE
+
+  async create(
     userId: string,
-    createArticleDto: CreateArticleDto,
+    dto: CreateArticleDto,
     file?: Express.Multer.File,
   ): Promise<Article> {
     let image: string | undefined;
 
     if (file) {
-      image = await this.cloudinaryService.uploadImage(file);
+      image = await this.cloudinary.uploadImage(file);
     }
 
-    const newArticle = this.articleRepository.create({
-      ...createArticleDto,
+    const article = this.articleRepo.create({
+      title: dto.title,
+      content: dto.content,
+      categoryId: dto.categoryId,
       image,
       userId,
     });
-    await this.articleRepository.save(newArticle);
 
-    for (const tagName of createArticleDto.tags) {
-      let tag = await this.tagRepository.findOne({
-        where: { name: tagName.toLowerCase() },
-      });
-      if (!tag) {
-        tag = this.tagRepository.create({ name: tagName.toLowerCase() });
-        await this.tagRepository.save(tag);
-      }
-      const articleTag = this.articleTagRepository.create({
-        article: newArticle,
-        tag,
-      });
-      await this.articleTagRepository.save(articleTag);
+    await this.articleRepo.save(article);
+
+    if (dto.tags?.length) {
+      await this.syncTags(article, dto.tags);
     }
 
-    return newArticle;
+    return article;
   }
 
-  async findAllArticle(query: ArticleQueryDto) {
+  // READ ALL
+  async findAll(query: ArticleQueryDto) {
     const {
       title,
       categoryId,
       page = 1,
-      limit = 3,
+      limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'desc',
     } = query;
 
-    // Pagination
     const skip = (page - 1) * limit;
 
-    const orderDirection = sortOrder === 'asc' ? 'ASC' : 'DESC';
-
-    const qb = this.articleRepository
+    const qb = this.articleRepo
       .createQueryBuilder('article')
       .innerJoinAndSelect('article.category', 'category')
       .innerJoinAndSelect('article.user', 'user');
 
-    // Searching
     if (title) {
       qb.andWhere('article.title LIKE :title', { title: `%${title}%` });
     }
+
     if (categoryId) {
       qb.andWhere('article.categoryId = :categoryId', { categoryId });
     }
 
-    // Relations
     const [data, total] = await qb
-      .orderBy(`article.${sortBy}`, orderDirection)
+      .orderBy(`article.${sortBy}`, sortOrder.toUpperCase() as 'ASC' | 'DESC')
       .skip(skip)
       .take(limit)
       .select(['article', 'category.name', 'user.name', 'user.email'])
@@ -102,8 +96,9 @@ export class ArticleService {
     };
   }
 
-  async findOneByParams(id: string): Promise<Article | null> {
-    return await this.articleRepository.findOne({
+  // READ ONE
+  async findOne(id: string): Promise<Article | null> {
+    return this.articleRepo.findOne({
       where: { id },
       relations: [
         'category',
@@ -114,88 +109,63 @@ export class ArticleService {
         'comments.user',
       ],
       select: {
-        category: {
-          id: true,
-          name: true,
-        },
-        user: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-        },
+        category: { id: true, name: true },
+        user: { id: true, name: true, email: true, role: true },
         articleTags: {
           id: true,
-          tag: {
-            id: true,
-            name: true,
-          },
+          tag: { id: true, name: true },
         },
         comments: {
           id: true,
           content: true,
           createdAt: true,
           updatedAt: true,
-          user: {
-            name: true,
-            email: true,
-          },
+          user: { name: true, email: true },
         },
       },
     });
   }
 
-  async updateArticleByParams(
+  // UPDATE
+  async update(
     userId: string,
     article: Article,
-    updateArticleDto: UpdateArticleDto,
+    dto: UpdateArticleDto,
     file?: Express.Multer.File,
   ): Promise<Article> {
-    const currentUser = await this.articleRepository.findOne({
-      where: { userId },
-    });
-    if (!currentUser) {
-      throw new ForbiddenException();
-    }
+    this.assertOwnership(userId, article.userId);
 
     if (file) {
-      article.image = await this.cloudinaryService.uploadImage(file);
+      article.image = await this.cloudinary.uploadImage(file);
     }
 
-    Object.assign(article, updateArticleDto);
-    return this.articleRepository.save(article);
+    Object.assign(article, dto);
+    return this.articleRepo.save(article);
   }
 
-  async deleteArticleByParams(
-    userId: string,
-    articleData: IArticle,
-  ): Promise<void> {
-    const currentUser = await this.articleRepository.findOne({
-      where: { userId },
-    });
-    if (!currentUser) {
-      throw new ForbiddenException();
-    }
-
-    await this.articleRepository.delete(articleData.id);
+  // DELETE
+  async remove(userId: string, article: Article): Promise<void> {
+    this.assertOwnership(userId, article.userId);
+    await this.articleRepo.delete(article.id);
   }
 
-  async articleByUsers(userId: string, query: ArticleQueryDto) {
+  // READ BY USER
+  async findByUser(userId: string, query: ArticleQueryDto) {
     const {
       title,
       page = 1,
-      limit = 3,
+      limit = 10,
       sortBy = 'createdAt',
       sortOrder = 'desc',
     } = query;
 
-    // Pagination
     const skip = (page - 1) * limit;
-    const qb = this.articleRepository
-      .createQueryBuilder('article')
-      .innerJoinAndSelect('article.category', 'category');
 
-    // Searching
+    const qb = this.articleRepo
+      .createQueryBuilder('article')
+      .innerJoinAndSelect('article.category', 'category')
+      .where('article.userId = :userId', { userId });
+
     if (title) {
       qb.andWhere('article.title LIKE :title', { title: `%${title}%` });
     }
@@ -204,7 +174,6 @@ export class ArticleService {
       .orderBy(`article.${sortBy}`, sortOrder.toUpperCase() as 'ASC' | 'DESC')
       .skip(skip)
       .take(limit)
-      .where({ userId })
       .select(['article', 'category.name'])
       .getManyAndCount();
 
@@ -214,5 +183,31 @@ export class ArticleService {
       page,
       lastPage: Math.ceil(total / limit),
     };
+  }
+
+  // HELPERS
+  private async syncTags(article: Article, tags: string[]) {
+    for (const name of tags) {
+      const normalized = name.toLowerCase();
+
+      let tag = await this.tagRepo.findOne({
+        where: { name: normalized },
+      });
+
+      if (!tag) {
+        tag = this.tagRepo.create({ name: normalized });
+        await this.tagRepo.save(tag);
+      }
+
+      await this.articleTagRepo.save(
+        this.articleTagRepo.create({ article, tag }),
+      );
+    }
+  }
+
+  private assertOwnership(currentUserId: string, ownerId: string) {
+    if (currentUserId !== ownerId) {
+      throw new ForbiddenException('Forbidden resource');
+    }
   }
 }
