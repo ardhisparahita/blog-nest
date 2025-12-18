@@ -9,37 +9,38 @@ import { CreateUpdateCommentDto } from './dto/createUpdate-comment.dto';
 export class CommentService {
   constructor(
     @InjectRepository(Comment)
-    private commentRepository: Repository<Comment>,
+    private readonly commentRepository: Repository<Comment>,
+
     @InjectRepository(Article)
-    private articleRepository: Repository<Article>,
+    private readonly articleRepository: Repository<Article>,
   ) {}
 
-  async updateOrCreate(
+  private async getCommentByUserAndArticle(userId: string, articleId: string) {
+    return this.commentRepository.findOne({ where: { articleId, userId } });
+  }
+
+  // CREATE OR UPDATE
+  async upsertComment(
     userId: string,
-    createUpdateCommentDto: CreateUpdateCommentDto,
+    dto: CreateUpdateCommentDto,
   ): Promise<{ message: string }> {
     const article = await this.articleRepository.findOne({
-      where: { id: createUpdateCommentDto.articleId },
+      where: { id: dto.articleId },
     });
-    if (!article) {
-      throw new NotFoundException('article not found');
-    }
-    const comment = await this.commentRepository.findOne({
-      where: { articleId: createUpdateCommentDto.articleId, userId },
-    });
+    if (!article) throw new NotFoundException('Article not found');
+
+    let comment = await this.getCommentByUserAndArticle(userId, dto.articleId);
+
     if (!comment) {
-      const newComment = this.commentRepository.create(createUpdateCommentDto);
-      newComment.userId = userId;
-      await this.commentRepository.save(newComment);
-      return {
-        message: 'create comment success',
-      };
-    } else {
-      Object.assign(comment, createUpdateCommentDto);
+      // create
+      comment = this.commentRepository.create({ ...dto, userId });
       await this.commentRepository.save(comment);
-      return {
-        message: 'update comment success',
-      };
+      return { message: 'create comment success' };
+    } else {
+      // update
+      Object.assign(comment, dto);
+      await this.commentRepository.save(comment);
+      return { message: 'update comment success' };
     }
   }
 
@@ -47,19 +48,7 @@ export class CommentService {
     userId: string,
     articleId: string,
   ): Promise<{ status: boolean; id?: string }> {
-    const comment = await this.commentRepository.findOne({
-      where: { articleId, userId },
-    });
-
-    if (comment) {
-      return {
-        status: true,
-        id: comment.id,
-      };
-    } else {
-      return {
-        status: false,
-      };
-    }
+    const comment = await this.getCommentByUserAndArticle(userId, articleId);
+    return comment ? { status: true, id: comment.id } : { status: false };
   }
 }
