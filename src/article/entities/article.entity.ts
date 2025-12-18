@@ -41,14 +41,16 @@ export class Article {
   @ManyToOne(() => Category, (category) => category.id)
   category: Category;
   @Column({
-    type: 'uuid',
+    type: 'varchar',
+    length: 36,
   })
   categoryId: string;
 
   @ManyToOne(() => User, (user) => user.id)
   user: User;
   @Column({
-    type: 'uuid',
+    type: 'varchar',
+    length: 36,
   })
   userId: string;
 

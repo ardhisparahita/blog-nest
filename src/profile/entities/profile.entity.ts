@@ -21,7 +21,8 @@ export class Profile {
   bio: string;
 
   @Column({
-    type: 'uuid',
+    type: 'varchar',
+    length: 36,
   })
   userId: string;
 

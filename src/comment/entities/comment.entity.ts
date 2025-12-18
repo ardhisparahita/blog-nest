@@ -17,13 +17,19 @@ export class Comment {
   @ManyToOne(() => User, (user) => user.id)
   user: User;
 
-  @Column({ type: 'uuid' })
+  @Column({
+    type: 'varchar',
+    length: 36,
+  })
   userId: string;
 
   @ManyToOne(() => Article, (article) => article.id)
   article: Article;
 
-  @Column({ type: 'uuid' })
+  @Column({
+    type: 'varchar',
+    length: 36,
+  })
   articleId: string;
 
   @Column({ type: 'text' })

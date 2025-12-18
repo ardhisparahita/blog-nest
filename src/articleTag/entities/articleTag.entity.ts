@@ -10,12 +10,18 @@ export class ArticleTag {
   @ManyToOne(() => Tag, (tag) => tag.id)
   tag: Tag;
 
-  @Column({ type: 'uuid' })
+  @Column({
+    type: 'varchar',
+    length: 36,
+  })
   tagId: string;
 
   @ManyToOne(() => Article, (article) => article.id)
   article: Article;
 
-  @Column({ type: 'uuid' })
+  @Column({
+    type: 'varchar',
+    length: 36,
+  })
   articleId: string;
 }
