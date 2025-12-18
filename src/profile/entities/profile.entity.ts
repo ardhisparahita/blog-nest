@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity('profiles')
 export class Profile {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -21,8 +21,7 @@ export class Profile {
   bio: string;
 
   @Column({
-    type: 'varchar',
-    length: 36,
+    type: 'uuid',
   })
   userId: string;
 
