@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateArticleDto } from './dto/create-article.dto';
 import { UpdateArticleDto } from './dto/update-article.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -24,16 +28,13 @@ export class ArticleService {
     private readonly cloudinary: CloudinaryService,
   ) {}
 
-  // =========================
   // CREATE
-
   async create(
     userId: string,
     dto: CreateArticleDto,
     file?: Express.Multer.File,
   ): Promise<Article> {
     let image: string | undefined;
-
     if (file) {
       image = await this.cloudinary.uploadImage(file);
     }
@@ -126,6 +127,12 @@ export class ArticleService {
     });
   }
 
+  async getArticleOrThrow(id: string): Promise<Article> {
+    const article = await this.findOne(id);
+    if (!article) throw new NotFoundException('Article not found');
+    return article;
+  }
+
   // UPDATE
   async update(
     userId: string,
@@ -206,8 +213,7 @@ export class ArticleService {
   }
 
   private assertOwnership(currentUserId: string, ownerId: string) {
-    if (currentUserId !== ownerId) {
+    if (currentUserId !== ownerId)
       throw new ForbiddenException('Forbidden resource');
-    }
   }
 }
