@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,20 +9,19 @@ import { Repository } from 'typeorm';
 export class CategoryService {
   constructor(
     @InjectRepository(Category)
-    private categoryRepository: Repository<Category>,
+    private readonly categoryRepository: Repository<Category>,
   ) {}
 
   async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
-    const data = await this.categoryRepository.save(createCategoryDto);
-    return data;
+    return this.categoryRepository.save(createCategoryDto);
   }
 
   async findAll(): Promise<Category[]> {
-    return await this.categoryRepository.find();
+    return this.categoryRepository.find();
   }
 
   async findOne(id: string): Promise<Category | null> {
-    return await this.categoryRepository.findOne({
+    return this.categoryRepository.findOne({
       where: { id },
       relations: [
         'articles',
@@ -57,15 +56,23 @@ export class CategoryService {
     });
   }
 
-  async update(
-    category: Category,
-    updateCategoryDto: UpdateCategoryDto,
-  ): Promise<Category> {
-    Object.assign(category, updateCategoryDto);
-    return await this.categoryRepository.save(category);
+  async getCategoryOrThrow(id: string): Promise<Category> {
+    const category = await this.findOne(id);
+    if (!category) throw new NotFoundException('Category not found');
+    return category;
   }
 
-  async remove(category: Category): Promise<void> {
+  async updateCategory(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<Category> {
+    const category = await this.getCategoryOrThrow(id);
+    Object.assign(category, updateCategoryDto);
+    return this.categoryRepository.save(category);
+  }
+
+  async removeCategory(id: string): Promise<void> {
+    const category = await this.getCategoryOrThrow(id);
     await this.categoryRepository.delete(category.id);
   }
 }

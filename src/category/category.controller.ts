@@ -6,7 +6,6 @@ import {
   Patch,
   Param,
   Delete,
-  NotFoundException,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -15,10 +14,10 @@ import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { Category } from './entities/category.entity';
-import { FindOneParams } from './dto/find-one.params';
+import { FindOneParamsDto } from 'src/common/dto/find-one-params.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/role.guard';
-import { Roles } from 'src/auth/decorator/roles.decorator';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enum/role.enum';
 
 @Controller('category')
@@ -41,35 +40,27 @@ export class CategoryController {
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Category> {
-    const category = await this.findOneOrFail(id);
+    const category = await this.categoryService.getCategoryOrThrow(id);
     return category;
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Patch(':id')
-  async update(
-    @Param() params: FindOneParams,
+  async updateCategory(
+    @Param() params: FindOneParamsDto,
     @Body() updateCategoryDto: UpdateCategoryDto,
   ): Promise<Category> {
-    const category = await this.findOneOrFail(params.id);
-    return this.categoryService.update(category, updateCategoryDto);
+    await this.categoryService.getCategoryOrThrow(params.id);
+    return this.categoryService.updateCategory(params.id, updateCategoryDto);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param() params: FindOneParams): Promise<void> {
-    const category = await this.findOneOrFail(params.id);
-    return this.categoryService.remove(category);
-  }
-
-  private async findOneOrFail(id: string): Promise<Category> {
-    const category = await this.categoryService.findOne(id);
-    if (!category) {
-      throw new NotFoundException();
-    }
-    return category;
+  async removeCategory(@Param() params: FindOneParamsDto): Promise<void> {
+    await this.categoryService.getCategoryOrThrow(params.id);
+    return this.categoryService.removeCategory(params.id);
   }
 }
