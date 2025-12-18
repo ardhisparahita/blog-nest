@@ -25,7 +25,7 @@ import { Article } from './entities/article.entity';
 import { User } from 'src/auth/decorators/user.decorator';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import { RolesGuard } from 'src/auth/guard/role.guard';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from 'src/auth/decorator/roles.decorator';
 import { Role } from 'src/auth/enum/role.enum';
 import type { UserPayload } from 'src/auth/interface/authenticated-request.interface';
 

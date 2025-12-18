@@ -1,13 +1,10 @@
 import {
   IsEmail,
-  IsEnum,
   IsNotEmpty,
-  IsOptional,
   IsString,
   Matches,
   MinLength,
 } from 'class-validator';
-import { Role } from '../enum/role.enum';
 
 export class RegisterDto {
   @IsString()
@@ -15,20 +12,15 @@ export class RegisterDto {
   name: string;
 
   @IsEmail()
-  @IsNotEmpty()
   email: string;
 
-  @IsNotEmpty()
+  @IsString()
   @MinLength(8)
   @Matches(/[A-Z]/, {
-    message: 'Password must be minimum 1 Capital',
+    message: 'Password must contain at least 1 uppercase letter',
   })
   @Matches(/[0-9]/, {
-    message: 'Password must be minimum 1 Number',
+    message: 'Password must contain at least 1 number',
   })
   password: string;
-
-  @IsOptional()
-  @IsEnum(Role)
-  role: Role;
 }

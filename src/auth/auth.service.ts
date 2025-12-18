@@ -4,81 +4,74 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { RegisterDto } from './dto/register.dto';
-import { Role } from './enum/role.enum';
 import { JwtService } from '@nestjs/jwt';
+import { User } from './entities/user.entity';
+import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Role } from './enum/role.enum';
+
+const SALT_ROUNDS = 12;
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
-    private userRepository: Repository<User>,
-    private jwtService: JwtService,
+    private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async Register(registerDto: RegisterDto): Promise<{ message: string }> {
-    const hashPassword = await bcrypt.hash(registerDto.password, 12);
+  async register(dto: RegisterDto): Promise<{ message: string }> {
+    const { email, name, password } = dto;
 
-    const userEmail = await this.userRepository.findOneBy({
-      email: registerDto.email,
-    });
-    const userName = await this.userRepository.findOneBy({
-      name: registerDto.name,
+    const existingUser = await this.userRepository.findOne({
+      where: [{ email }, { name }],
     });
 
-    if (userEmail) {
-      throw new ConflictException('Email is already exist!');
+    if (existingUser) {
+      throw new ConflictException('Email or username already exists');
     }
 
-    if (userName) {
-      throw new ConflictException('Name is already exist!');
-    }
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-    const userData = await this.userRepository.find();
-    const roleUser: Role = userData.length === 0 ? Role.ADMIN : Role.USER;
+    const isFirstUser = (await this.userRepository.count()) === 0;
+    const role = isFirstUser ? Role.ADMIN : Role.USER;
 
-    const newUser = this.userRepository.create({
-      ...registerDto,
-      password: hashPassword,
-      role: roleUser,
+    const user = this.userRepository.create({
+      name,
+      email,
+      password: hashedPassword,
+      role,
     });
 
-    await this.userRepository.save(newUser);
+    await this.userRepository.save(user);
 
-    return {
-      message: 'create user success',
-    };
+    return { message: 'User registered successfully' };
   }
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
-    const user = await this.userRepository.findOne({
-      where: { email: loginDto.email },
-    });
+  async login(dto: LoginDto): Promise<{ accessToken: string }> {
+    const { email, password } = dto;
+
+    const user = await this.userRepository.findOne({ where: { email } });
 
     if (!user) {
-      throw new UnauthorizedException('invalid credentials');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    if (!(await bcrypt.compare(loginDto.password, user.password))) {
-      throw new UnauthorizedException('invalid credentials');
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { id: user.id, email: user.email, role: user.role };
-
-    return {
-      accessToken: await this.jwtService.signAsync(payload),
+    const payload = {
+      id: user.id,
+      email: user.email,
+      role: user.role,
     };
-  }
 
-  async getUser(id: string): Promise<User | null> {
-    const user = await this.userRepository.findOneBy({ id });
-    if (!user) {
-      return null;
-    }
-    return user;
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return { accessToken };
   }
 }
