@@ -53,7 +53,9 @@ export class Article {
   @OneToMany(() => ArticleTag, (articleTag) => articleTag.article)
   articleTags: ArticleTag[];
 
-  @OneToMany(() => Comment, (comment) => comment.article)
+  @OneToMany(() => Comment, (comment) => comment.article, {
+    onDelete: 'CASCADE',
+  })
   comments: Comment[];
 
   @CreateDateColumn()

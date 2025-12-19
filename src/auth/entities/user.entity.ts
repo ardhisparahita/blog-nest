@@ -10,6 +10,7 @@ import {
 import { Role } from '../enum/role.enum';
 import { Profile } from 'src/profile/entities/profile.entity';
 import { Article } from 'src/article/entities/article.entity';
+import { Comment } from 'src/comment/entities/comment.entity';
 
 @Entity('users')
 export class User {
@@ -34,6 +35,9 @@ export class User {
 
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
+
+  @OneToOne(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 
   @OneToMany(() => Article, (article) => article.id)
   articles: Article[];
