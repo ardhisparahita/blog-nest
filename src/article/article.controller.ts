@@ -44,8 +44,10 @@ export class ArticleController {
   }
 
   @Get(':id')
-  async findOne(@Param() params: FindOneParamsDto): Promise<Article> {
-    return this.articleService.getArticleOrThrow(params.id);
+  async findOneArticle(
+    @Param() params: FindOneParamsDto,
+  ): Promise<Article | null> {
+    return await this.articleService.findOneArticle(params.id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
@@ -70,19 +72,17 @@ export class ArticleController {
     @Body() dto: UpdateArticleDto,
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<Article> {
-    const article = await this.articleService.getArticleOrThrow(params.id);
-    return this.articleService.update(user.id, article, dto, file);
+    return this.articleService.update(user.id, params.id, dto, file);
   }
 
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(
+  async delete(
     @User() user: UserPayload,
     @Param() params: FindOneParamsDto,
   ): Promise<void> {
-    const article = await this.articleService.getArticleOrThrow(params.id);
-    await this.articleService.remove(user.id, article);
+    await this.articleService.delete(user.id, params.id);
   }
 }

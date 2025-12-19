@@ -7,9 +7,13 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { JwtModule } from '@nestjs/jwt';
 import { Tag } from 'src/tag/entities/tag.entity';
 import { ArticleTag } from 'src/articleTag/entities/articleTag.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Article, Tag, ArticleTag]), JwtModule],
+  imports: [
+    TypeOrmModule.forFeature([Article, Tag, ArticleTag, Category]),
+    JwtModule,
+  ],
   controllers: [ArticleController],
   providers: [ArticleService, CloudinaryService],
 })

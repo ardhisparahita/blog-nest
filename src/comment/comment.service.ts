@@ -53,8 +53,6 @@ export class CommentService {
 
   private assertOwnership(currentUserId: string, ownerId: string) {
     if (currentUserId !== ownerId) {
-      console.log('currentUserId', currentUserId, typeof currentUserId);
-      console.log('ownerId', ownerId, typeof ownerId);
       throw new ForbiddenException();
     }
   }

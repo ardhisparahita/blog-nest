@@ -12,6 +12,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { ArticleQueryDto } from './dto/article-query.dto';
 import { Tag } from 'src/tag/entities/tag.entity';
 import { ArticleTag } from 'src/articleTag/entities/articleTag.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Injectable()
 export class ArticleService {
@@ -25,8 +26,27 @@ export class ArticleService {
     @InjectRepository(ArticleTag)
     private readonly articleTagRepo: Repository<ArticleTag>,
 
+    @InjectRepository(Category)
+    private readonly categoryRepo: Repository<Category>,
+
     private readonly cloudinary: CloudinaryService,
   ) {}
+
+  private assertOwnership(currentUserId: string, ownerId: string) {
+    if (currentUserId !== ownerId)
+      throw new ForbiddenException('Forbidden resource');
+  }
+
+  async getArticleOrThrow(id: string): Promise<Article> {
+    const article = await this.articleRepo.findOne({ where: { id } });
+    if (!article) throw new NotFoundException('Article not found');
+    return article;
+  }
+  async getCategoryOrThrow(id: string): Promise<Category> {
+    const category = await this.categoryRepo.findOne({ where: { id } });
+    if (!category) throw new NotFoundException('Category not found');
+    return category;
+  }
 
   // CREATE
   async create(
@@ -34,6 +54,7 @@ export class ArticleService {
     dto: CreateArticleDto,
     file?: Express.Multer.File,
   ): Promise<Article> {
+    await this.getCategoryOrThrow(dto.categoryId);
     let image: string | undefined;
     if (file) {
       image = await this.cloudinary.uploadImage(file);
@@ -98,7 +119,8 @@ export class ArticleService {
   }
 
   // READ ONE
-  async findOne(id: string): Promise<Article | null> {
+  async findOneArticle(id: string): Promise<Article | null> {
+    await this.getArticleOrThrow(id);
     return this.articleRepo.findOne({
       where: { id },
       relations: [
@@ -127,21 +149,15 @@ export class ArticleService {
     });
   }
 
-  async getArticleOrThrow(id: string): Promise<Article> {
-    const article = await this.findOne(id);
-    if (!article) throw new NotFoundException('Article not found');
-    return article;
-  }
-
   // UPDATE
   async update(
     userId: string,
-    article: Article,
+    articleId: string,
     dto: UpdateArticleDto,
     file?: Express.Multer.File,
   ): Promise<Article> {
+    const article = await this.getArticleOrThrow(articleId);
     this.assertOwnership(userId, article.userId);
-
     if (file) {
       article.image = await this.cloudinary.uploadImage(file);
     }
@@ -151,12 +167,14 @@ export class ArticleService {
   }
 
   // DELETE
-  async remove(userId: string, article: Article): Promise<void> {
+  async delete(userId: string, articleId: string): Promise<void> {
+    const article = await this.getArticleOrThrow(articleId);
+    this.assertOwnership(userId, article.userId);
     this.assertOwnership(userId, article.userId);
     await this.articleRepo.delete(article.id);
   }
 
-  // READ BY USER
+  // READ BY USER && PAGINATION
   async findByUser(userId: string, query: ArticleQueryDto) {
     const {
       title,
@@ -210,10 +228,5 @@ export class ArticleService {
         this.articleTagRepo.create({ article, tag }),
       );
     }
-  }
-
-  private assertOwnership(currentUserId: string, ownerId: string) {
-    if (currentUserId !== ownerId)
-      throw new ForbiddenException('Forbidden resource');
   }
 }
