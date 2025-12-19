@@ -38,7 +38,9 @@ export class Article {
   })
   status: ArticleStatus;
 
-  @ManyToOne(() => Category, (category) => category.id)
+  @ManyToOne(() => Category, (category) => category.articles, {
+    onDelete: 'CASCADE',
+  })
   category: Category;
   @Column({ type: 'uuid' })
   categoryId: string;
