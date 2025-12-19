@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class InitDatabase1766141223663 implements MigrationInterface {
-    name = 'InitDatabase1766141223663'
+export class InitDatabase1766142111670 implements MigrationInterface {
+    name = 'InitDatabase1766142111670'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE \`articles\` CHANGE \`image\` \`image\` varchar(255) NULL`);
