@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsUUID } from 'class-validator';
 
-export class CreateUpdateCommentDto {
+export class CreateCommentDto {
   @IsNotEmpty()
   @IsUUID()
   articleId: string;

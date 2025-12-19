@@ -1,9 +1,23 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { User } from 'src/auth/decorators/user.decorator';
-import { CreateUpdateCommentDto } from './dto/createUpdate-comment.dto';
+import { CreateCommentDto } from './dto/create-comment.dto copy';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import type { UserPayload } from 'src/auth/interface/authenticated-request.interface';
+import { UpdateCommentDto } from './dto/update-comment.dto';
+import { FindOneParamsDto } from 'src/common/dto/find-one-params.dto';
+import { Comment } from './entities/comment.entity';
 
 @Controller('comments')
 @UseGuards(AuthGuard)
@@ -11,18 +25,36 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @Post()
-  async upsert(
+  async create(
     @User() user: UserPayload,
-    @Body() dto: CreateUpdateCommentDto,
+    @Body() dto: CreateCommentDto,
   ): Promise<{ message: string }> {
-    return this.commentService.upsertComment(user.id, dto);
+    return this.commentService.create(user.id, dto);
+  }
+
+  @Patch('/:id')
+  async update(
+    @Param() params: FindOneParamsDto,
+    @User() user: UserPayload,
+    @Body() dto: UpdateCommentDto,
+  ): Promise<Comment> {
+    return this.commentService.update(user.id, params.id, dto);
   }
 
   @Get('/:articleId')
-  async isValid(
+  async getUserCommentByArticle(
     @User() user: UserPayload,
     @Param('articleId') articleId: string,
   ): Promise<{ status: boolean; id?: string }> {
-    return this.commentService.isValidComment(user.id, articleId);
+    return this.commentService.getUserCommentByArticle(user.id, articleId);
+  }
+
+  @Delete('/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async delete(
+    @User() user: UserPayload,
+    @Param() params: FindOneParamsDto,
+  ): Promise<void> {
+    return this.commentService.delete(user.id, params.id);
   }
 }
