@@ -7,7 +7,7 @@ export class ArticleTag {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => Tag, (tag) => tag.id)
+  @ManyToOne(() => Tag, (tag) => tag.articleTags)
   tag: Tag;
 
   @Column({

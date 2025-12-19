@@ -45,7 +45,7 @@ export class Article {
   @Column({ type: 'uuid' })
   categoryId: string;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.articles)
   user: User;
   @Column({ type: 'uuid' })
   userId: string;

@@ -36,10 +36,10 @@ export class User {
   @OneToOne(() => Profile, (profile) => profile.user)
   profile: Profile;
 
-  @OneToOne(() => Comment, (comment) => comment.user)
+  @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
 
-  @OneToMany(() => Article, (article) => article.id)
+  @OneToMany(() => Article, (article) => article.user)
   articles: Article[];
 
   @CreateDateColumn()
