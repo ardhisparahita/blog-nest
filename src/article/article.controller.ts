@@ -36,16 +36,16 @@ export class ArticleController {
     return this.articleService.findAll(query);
   }
 
-  @Get(':id')
-  async findOne(@Param() params: FindOneParamsDto): Promise<Article> {
-    return this.articleService.getArticleOrThrow(params.id);
-  }
-
   @UseGuards(AuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @Get('me')
   findMyArticles(@User() user: UserPayload, @Query() query: ArticleQueryDto) {
     return this.articleService.findByUser(user.id, query);
+  }
+
+  @Get(':id')
+  async findOne(@Param() params: FindOneParamsDto): Promise<Article> {
+    return this.articleService.getArticleOrThrow(params.id);
   }
 
   @UseGuards(AuthGuard, RolesGuard)

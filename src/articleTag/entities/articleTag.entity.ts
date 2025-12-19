@@ -15,7 +15,9 @@ export class ArticleTag {
   })
   tagId: string;
 
-  @ManyToOne(() => Article, (article) => article.id)
+  @ManyToOne(() => Article, (article) => article.articleTags, {
+    onDelete: 'CASCADE',
+  })
   article: Article;
 
   @Column({
