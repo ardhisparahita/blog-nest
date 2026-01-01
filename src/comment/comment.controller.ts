@@ -12,12 +12,13 @@ import {
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { User } from 'src/auth/decorators/user.decorator';
-import { CreateCommentDto } from './dto/create-comment.dto copy';
+import { CreateCommentDto } from './dto/create-comment.dto';
 import { AuthGuard } from 'src/auth/guard/auth.guard';
 import type { UserPayload } from 'src/auth/interface/authenticated-request.interface';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { FindOneParamsDto } from 'src/common/dto/find-one-params.dto';
 import { Comment } from './entities/comment.entity';
+import { ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 
 @Controller('comments')
 @UseGuards(AuthGuard)
@@ -25,6 +26,10 @@ export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
   @Post()
+  @ApiBearerAuth()
+  @ApiBody({
+    type: CreateCommentDto,
+  })
   async create(
     @User() user: UserPayload,
     @Body() dto: CreateCommentDto,
@@ -33,6 +38,11 @@ export class CommentController {
   }
 
   @Patch('/:id')
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'Id Comment' })
+  @ApiBody({
+    type: UpdateCommentDto,
+  })
   async update(
     @Param() params: FindOneParamsDto,
     @User() user: UserPayload,
@@ -42,6 +52,7 @@ export class CommentController {
   }
 
   @Get('/:articleId')
+  @ApiBearerAuth()
   async getUserCommentByArticle(
     @User() user: UserPayload,
     @Param('articleId') articleId: string,
@@ -50,6 +61,8 @@ export class CommentController {
   }
 
   @Delete('/:id')
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'Id Comment' })
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
     @User() user: UserPayload,

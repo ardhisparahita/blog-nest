@@ -7,6 +7,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enum/role.enum';
 import { FindOneParamsDto } from 'src/common/dto/find-one-params.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
+import { ApiBearerAuth, ApiBody, ApiParam } from '@nestjs/swagger';
 
 @Controller('users')
 @UseGuards(AuthGuard, RolesGuard)
@@ -15,11 +16,15 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
+  @ApiBearerAuth()
   async findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
   @Patch('/:id')
+  @ApiBearerAuth()
+  @ApiParam({ name: 'id', description: 'Id User' })
+  @ApiBody({ type: UpdateRoleDto })
   async updateRole(
     @Param() params: FindOneParamsDto,
     @Body() updateRoleDto: UpdateRoleDto,

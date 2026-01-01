@@ -1,3 +1,4 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
   IsNotEmpty,
@@ -9,9 +10,11 @@ import {
 export class RegisterDto {
   @IsString()
   @IsNotEmpty()
+  @ApiProperty()
   name: string;
 
   @IsEmail()
+  @ApiProperty()
   email: string;
 
   @IsString()
@@ -22,5 +25,6 @@ export class RegisterDto {
   @Matches(/[0-9]/, {
     message: 'Password must contain at least 1 number',
   })
+  @ApiProperty()
   password: string;
 }

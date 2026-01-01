@@ -23,11 +23,11 @@ import { CommentModule } from './comment/comment.module';
       useFactory: (configService: ConfigService) =>
         typeOrmConfig(configService),
     }),
-    ArticleModule,
-    CategoryModule,
     AuthModule,
     UsersModule,
     ProfileModule,
+    CategoryModule,
+    ArticleModule,
     CloudinaryModule,
     CommentModule,
   ],
