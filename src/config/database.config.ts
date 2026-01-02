@@ -10,6 +10,6 @@ export const typeOrmConfig = (
   username: configService.get<string>('DB_USER'),
   password: configService.get<string>('DB_PASSWORD'),
   database: configService.get<string>('DB_NAME'),
-  synchronize: configService.get<string>('DB_SYNC') === 'true',
+  synchronize: configService.get<string>('NODE_ENV') === 'production',
   autoLoadEntities: true,
 });
