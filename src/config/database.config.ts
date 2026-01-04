@@ -3,18 +3,29 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 export const typeOrmConfig = (
   configService: ConfigService,
-): TypeOrmModuleOptions => ({
-  type: 'mysql',
+): TypeOrmModuleOptions => {
+  const isProd = configService.get<string>('NODE_ENV') === 'production';
 
-  // ✅ PAKAI URL SAJA
-  url: configService.get<string>('DATABASE_URL'),
+  return {
+    type: 'mysql',
+    ...(isProd
+      ? {
+          url: configService.get<string>('DATABASE_URL'),
+          synchronize: true,
+        }
+      : {
+          host: configService.get<string>('DB_HOST'),
+          port: Number(configService.get<string>('DB_PORT')),
+          username: configService.get<string>('DB_USER'),
+          password: configService.get<string>('DB_PASSWORD'),
+          database: configService.get<string>('DB_NAME'),
+          synchronize: true,
+        }),
 
-  autoLoadEntities: true,
+    autoLoadEntities: true,
 
-  // ⚠️ PRODUCTION HARUS FALSE
-  synchronize: false,
-
-  extra: {
-    connectTimeout: 30000,
-  },
-});
+    extra: {
+      connectTimeout: 30000,
+    },
+  };
+};
