@@ -11,7 +11,7 @@ export const typeOrmConfig = (
     ...(isProd
       ? {
           url: configService.get<string>('DATABASE_URL'),
-          synchronize: true,
+          synchronize: false,
         }
       : {
           host: configService.get<string>('DB_HOST'),
