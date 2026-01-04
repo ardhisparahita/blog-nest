@@ -8,10 +8,15 @@ export const typeOrmConfig = (
 
   return {
     type: 'mysql',
+
     ...(isProd
       ? {
           url: configService.get<string>('DATABASE_URL'),
           synchronize: false,
+
+          ssl: {
+            rejectUnauthorized: false,
+          },
         }
       : {
           host: configService.get<string>('DB_HOST'),
@@ -23,6 +28,10 @@ export const typeOrmConfig = (
         }),
 
     autoLoadEntities: true,
+
+    migrations: [__dirname + '/../migrations/*{.ts,.js}'],
+
+    migrationsRun: isProd,
 
     extra: {
       connectTimeout: 30000,

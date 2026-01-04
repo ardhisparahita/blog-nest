@@ -8,10 +8,10 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ArticleStatus } from '../enums/article-status.enum';
-import { Category } from 'src/category/entities/category.entity';
-import { User } from 'src/auth/entities/user.entity';
-import { ArticleTag } from 'src/articleTag/entities/articleTag.entity';
-import { Comment } from 'src/comment/entities/comment.entity';
+import { Category } from '../../category/entities/category.entity';
+import { User } from '../../auth/entities/user.entity';
+import { ArticleTag } from '../../articleTag/entities/articleTag.entity';
+import { Comment } from '../../comment/entities/comment.entity';
 
 @Entity('articles')
 export class Article {

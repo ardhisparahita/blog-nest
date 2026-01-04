@@ -1,4 +1,4 @@
-import { ArticleTag } from 'src/articleTag/entities/articleTag.entity';
+import { ArticleTag } from '../../articleTag/entities/articleTag.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('tags')

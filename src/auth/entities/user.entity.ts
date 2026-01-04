@@ -8,9 +8,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Role } from '../enum/role.enum';
-import { Profile } from 'src/profile/entities/profile.entity';
-import { Article } from 'src/article/entities/article.entity';
-import { Comment } from 'src/comment/entities/comment.entity';
+import { Profile } from '../../profile/entities/profile.entity';
+import { Article } from '../../article/entities/article.entity';
+import { Comment } from '../../comment/entities/comment.entity';
 
 @Entity('users')
 export class User {
