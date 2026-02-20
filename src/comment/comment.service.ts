@@ -57,7 +57,6 @@ export class CommentService {
     }
   }
 
-  // CREATE
   async create(
     userId: string,
     dto: CreateCommentDto,
@@ -78,7 +77,6 @@ export class CommentService {
     const comment = await this.getCommentOrThrow(commentId);
     this.assertOwnership(userId, comment.user.id);
 
-    // comment will be edited in 1 minute
     const diffInMs = new Date().getTime() - comment.createdAt.getTime();
     if (diffInMs / 1000 / 60 > 1) {
       throw new BadRequestException('edit time expired');

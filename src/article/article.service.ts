@@ -48,7 +48,6 @@ export class ArticleService {
     return category;
   }
 
-  // CREATE
   async create(
     userId: string,
     dto: CreateArticleDto,
@@ -77,7 +76,6 @@ export class ArticleService {
     return article;
   }
 
-  // READ ALL
   async findAll(query: ArticleQueryDto) {
     const {
       title,
@@ -118,7 +116,6 @@ export class ArticleService {
     };
   }
 
-  // READ ONE
   async findOneArticle(id: string): Promise<Article | null> {
     await this.getArticleOrThrow(id);
     return this.articleRepo.findOne({
@@ -149,7 +146,6 @@ export class ArticleService {
     });
   }
 
-  // UPDATE
   async update(
     userId: string,
     articleId: string,
@@ -166,7 +162,6 @@ export class ArticleService {
     return this.articleRepo.save(article);
   }
 
-  // DELETE
   async delete(userId: string, articleId: string): Promise<void> {
     const article = await this.getArticleOrThrow(articleId);
     this.assertOwnership(userId, article.userId);
@@ -174,7 +169,6 @@ export class ArticleService {
     await this.articleRepo.delete(article.id);
   }
 
-  // READ BY USER && PAGINATION
   async findByUser(userId: string, query: ArticleQueryDto) {
     const {
       title,

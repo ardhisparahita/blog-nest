@@ -15,7 +15,6 @@ export class ProfileService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // CREATE OR UPDATE
   async upsertProfile(
     userId: string,
     dto: CreateOrUpdateProfileDto,
@@ -28,12 +27,10 @@ export class ProfileService {
     if (!user) throw new NotFoundException('User not found');
 
     if (user.profile) {
-      // update
       Object.assign(user.profile, dto);
       await this.profileRepository.save(user.profile);
       return { message: 'update profile success' };
     } else {
-      // create
       const profile = this.profileRepository.create(dto);
       profile.user = user;
       await this.profileRepository.save(profile);
